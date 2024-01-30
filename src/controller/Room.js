@@ -48,7 +48,7 @@ const room=[
     },
     {
         roomId:4,
-        roomType:'Ac/3 Bed0',
+        roomType:'Ac/3 Bed',
         bookStatus:false,
         pricePerHour:1500
     }
@@ -77,20 +77,26 @@ const bookedRoom=(req,res)=>{
     try {
         let bookedRoom=[]
 
-        for(let i=0;i<customer.length;i++){
-            for(let j =0;j<room.length;j++){
+        for(let i=0;i<room.length;i++){
+            for(let j =0;j<customer.length;j++){
 
-                if(customer[i].roomId===room[j].roomId){
+                if(room[i].roomId===customer[j].roomId){
                    bookedRoom.push({
-                    roomType:room[j].roomType,
-                    roomStatus:room[j].bookStatus,
-                    customer:customer[i]
+                    roomType:room[i].roomType,
+                    roomId:room[i].roomId,
+                    roomStatus:room[i].bookStatus,
+                    roomPrice:room[i].pricePerHour,
+                    customer:customer[j]
 
                    })    
                 }
 
             }
+            if (room[i].bookStatus === false) {
+                bookedRoom.push(room[i])
+              }
         }
+        
    res.status(200).send(bookedRoom)
 
 
@@ -101,6 +107,8 @@ const bookedRoom=(req,res)=>{
     }
 
 }
+
+
 //list all customer with booked data with
 const allCustomerData=(req,res)=>{
     try {
@@ -130,48 +138,61 @@ const allCustomerData=(req,res)=>{
         })
     }
 }
+
+
 //Booking function
 const Booking = (req, res) => {
     try {
-      const { id } = req.params;
-      const roomId = +id
-      const index = findIndex(room, id);
-      const temp = {...room[index]}
-      temp.bookStatus = true
-      
-      if (index !== -1 && room[index].bookStatus == false) {
-        room.splice(index,1,temp) // Room status changeing
-           const {name, date, startTime, endTime} = req.body
-        const id = customer.length? customer[customer.length -1].customerId + 1 : 1;
-        const newCustomer = {
-          customerId : id,
-          name, 
-          date,
-          startTime,
-          endTime,
-          roomId : roomId
+        const { id } = req.params;
+        const index = findIndex(room, id );
+        const RoomID = +id;
+    const temp = { ...room[index] };
+        temp.bookStatus = true;
+
+
+        if (index !== -1 && room[index].bookStatus === false) {
+            
+            room.splice(index, 1, temp); // Room status changing
+
+            const { name, date, startTime, endTime } = req.body;
+            const customerId = customer.length ? customer[customer.length - 1].customerId + 1 : 1;
+            const newCustomer = {
+                customerId: customerId,
+                name,
+                date,
+                startTime,
+                endTime,
+                roomId: RoomID,
+            };
+
+            customer.push(newCustomer); // Room booking customer details collect
+            res.status(200).send({
+                message: "Room Booking Successfully",
+            });
+        } 
+        else if (index !== -1 && room[index].bookStatus === true) {
+            res.status(500).send({
+                message: "This Room already booked",
+            });
+        } else {
+            res.status(404).send({
+                message: "Room not found",
+            });
         }
-        customer.push(newCustomer) //room booking customer details collect
-        res.status(200).send({
-          message: "Room Booking Successfully",
-        })
-      } else if (room[index].bookStatus == true) {
-        res.status(500).send({
-          messag: "This Room is already booking",
-        })
-      }
     } catch (error) {
-      res.status(500).send({
-        message: "Internal Server Error",
-      })
+        res.status(500).send({
+            message: "Internal Server Error",
+        });
     }
-  }
+};
+
 
   //Deleting by id
   const deleteById=(req,res)=>{
     try {
         const {id}=req.params
         const index=findIndex(room,id)
+        
         if(index!==-1){
             room.splice(index,1)
             res.status(200).send({

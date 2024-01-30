@@ -8,4 +8,5 @@ route.post('/',roomController.createRoom)
 route.get('/allcustomer',roomController.allCustomerData)
 route.put('/:id',roomController.Booking)
 route.delete('/:id',roomController.deleteById)
+
 export default route
